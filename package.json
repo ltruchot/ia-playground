@@ -1,0 +1,23 @@
+{
+  "name": "ai-playground",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -r esm ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ltruchot/ia-playground.git"
+  },
+  "author": "Loïc TRUCHOT",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ltruchot/ia-playground/issues"
+  },
+  "homepage": "https://github.com/ltruchot/ia-playground#readme",
+  "devDependencies": {
+    "esm": "3.2.13"
+  }
+}
