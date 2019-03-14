@@ -1,7 +1,7 @@
-import { negate } from './../core/functionalHelper';
-import { generateBool } from './../core/randomHelper';
+import { negate } from "./../core/functionalHelper";
+import { generateBool } from "./../core/randomHelper";
 
-export const flipCross = ([y, x]) => matrix => {
+export const flipCross = matrix => ([y, x]) => {
   return matrix
     .map((line, lineIdx) => (lineIdx === y ? line.map(negate) : line))
     .map((line, lineIdx) =>
