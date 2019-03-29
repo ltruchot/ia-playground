@@ -1,10 +1,30 @@
 import * as typeHelper from "./../core/typeHelper";
 
+const memoize = fn => {
+  let cache = {};
+  return (a1, a2) => {
+    let key = `${a1}-${a2}`;
+    if (key in cache) {
+      return cache[key];
+    } else {
+      cache[key] = fn(a1, a2);
+      return cache[key];
+    }
+  };
+};
+
 const sideLength = 4;
+const pathLimit = 5;
 const nbEl = sideLength * sideLength;
 const limit = Math.pow(2, nbEl);
+const matrixStates = [...Array(limit).keys()].map(i =>
+  typeHelper
+    .intToStrOf16Bits(i)
+    .split("")
+    .map(typeHelper.strToInt)
+);
 
-const toggleCross = (matrix, idx) => {
+const toggleCross = memoize((mIndex, idx) => {
   const rowIndexes = [];
   const colIndexes = [];
 
@@ -29,43 +49,33 @@ const toggleCross = (matrix, idx) => {
   }
 
   // toggle each calculated
-  return matrix.map((el, idx) => {
-    if (rowIndexes.includes(idx) || colIndexes.includes(idx)) {
-      return +!el;
-    } else {
-      return el;
-    }
-  });
-};
+  const matrixIntRepresentation = parseInt(
+    matrixStates[mIndex]
+      .map((el, idx) => {
+        if (rowIndexes.includes(idx) || colIndexes.includes(idx)) {
+          return +!el;
+        } else {
+          return el;
+        }
+      })
+      .join(""),
+    2
+  );
+  return matrixIntRepresentation;
+});
 
-const makeSolutionChecker = matrix => solution =>
-  !solution
-    .reduce((acc, cur) => {
-      const flipped = toggleCross(acc, cur);
-      return flipped;
-    }, matrix)
-    .includes(0);
+const makeSolutionChecker = mIndex => solution =>
+  !matrixStates[
+    solution.reduce((acc, cur) => toggleCross(acc, cur), mIndex)
+  ].includes(0);
 
-// a simple memoize function that takes in a function
-// and returns a memoized function
-const memoize = fn => {
-  let cache = {};
-  return (...args) => {
-    let n = args[0]; // just taking one argument here
-    if (n in cache) {
-      console.log("Fetching from cache");
-      return cache[n];
-    } else {
-      let result = fn(n);
-      cache[n] = result;
-      return result;
-    }
-  };
-};
-
-const makeSolutionFinder = matrix => {
-  const checkSolution = memoize(makeSolutionChecker(matrix));
+const makeSolutionFinder = mIndex => {
+  const checkSolution = makeSolutionChecker(mIndex);
+  let tryNumber = 0;
   const findSolution = (solution = []) => {
+    process.stdout.write(
+      ((++tryNumber / Math.pow(16, pathLimit)) * 100).toFixed(2) + "%\r"
+    );
     let invalid = [];
     // build queue
     for (let j = 0; j < nbEl; j++) {
@@ -80,7 +90,7 @@ const makeSolutionFinder = matrix => {
       }
     }
 
-    if (solution.length < 1) {
+    if (solution.length < pathLimit) {
       for (let j = 0; j < invalid.length; j++) {
         const solution = findSolution(invalid[j]);
         if (solution) {
@@ -92,16 +102,21 @@ const makeSolutionFinder = matrix => {
   return findSolution;
 };
 
-for (let i = 0; i < limit; i++) {
-  // get an initial state
-  const matrix = typeHelper
-    .intToStrOf16Bits(i)
-    .split("")
-    .map(typeHelper.strToInt);
-  // console.log(matrix);
-  const findSolution = makeSolutionFinder(matrix);
+/* matrixStates.forEach((matrix, index) => {
+  const findSolution = makeSolutionFinder(index);
   const finalSolution = findSolution();
   if (finalSolution) {
     console.log("finalSolution for", matrix, finalSolution);
   }
+}); */
+
+const stateIndex = parseInt("0000010110001000", 2);
+console.log("state", stateIndex, matrixStates[stateIndex]);
+console.log("calculating...");
+const findSolution = makeSolutionFinder(stateIndex);
+const finalSolution = findSolution();
+if (finalSolution) {
+  console.log("finalSolution for", finalSolution);
+} else {
+  console.log(pathLimit, " path limit reached without any solution");
 }
